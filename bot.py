@@ -5,17 +5,16 @@ import numpy as np
 
 model = joblib.load("model.pkl")
 
-# Вопросы и диапазоны
 questions = [
     ("Какой ваш уровень сахара в крови? (в мг/дл, например: 90–200)", 90, 200),
     ("Какое у вас верхнее кровяное давление? (например: 80–180)", 80, 180),
-    ("Есть ли у вас лишний вес? Введите ваш ИМТ (BMI, например: 18–50)", 18, 50),
-    ("Как часто вы употребляете сладкое? (от 0 — никогда до 10 — очень часто)", 0, 10),
-    ("Как часто вы испытываете жажду? (оцените от 0 — никогда до 10 — очень часто)", 0, 10),
-    ("Бывают ли частые мочеиспускания? (от 0 — нет до 10 — очень часто)", 0, 10),
-    ("Насколько часто вы чувствуете усталость? (от 0 — нет до 10 — постоянно)", 0, 10),
-    ("Сколько вам лет? (примерно от 10 до 100)", 10, 100),
-    ("Какой у вас уровень физической активности? (от 0 — нет до 10 — высокая активность)", 0, 10)
+    ("Есть ли у вас лишний вес? Введите ваш ИМТ (например: 18–50)", 18, 50),
+    ("Как часто вы употребляете сладкое? (от 0 до 10)", 0, 10),
+    ("Как часто вы испытываете жажду? (от 0 до 10)", 0, 10),
+    ("Бывают ли частые мочеиспускания? (от 0 до 10)", 0, 10),
+    ("Насколько часто вы чувствуете усталость? (от 0 до 10)", 0, 10),
+    ("Сколько вам лет? (от 10 до 100)", 10, 100),
+    ("Уровень физической активности? (от 0 до 10)", 0, 10)
 ]
 
 user_states = {}
@@ -24,36 +23,40 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user_states[chat_id] = {
         "answers": [],
-        "current_question": 0
+        "current_question": 0,
+        "in_progress": True
     }
     await update.message.reply_text("Привет! Я помогу оценить риск диабета. Введите значения по очереди:\n\n" +
                                     questions[0][0])
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    text = update.message.text
+    message = update.message.text.strip()
 
-    if chat_id not in user_states:
+    # Если нет состояния — просим начать
+    if chat_id not in user_states or not user_states[chat_id]["in_progress"]:
         await update.message.reply_text("Напишите /start чтобы начать опрос.")
         return
 
     state = user_states[chat_id]
     index = state["current_question"]
 
-    # Проверка ввода
+    # Проверка на число
     try:
-        value = float(text)
+        value = float(message)
         q_text, min_val, max_val = questions[index]
         if not (min_val <= value <= max_val):
-            await update.message.reply_text(f"Пожалуйста, введите значение в пределах от {min_val} до {max_val}.")
+            await update.message.reply_text(f"Введите число от {min_val} до {max_val}.")
             return
     except ValueError:
-        await update.message.reply_text("Пожалуйста, введите число.")
+        await update.message.reply_text("Пожалуйста, введите только число.")
         return
 
+    # Сохраняем ответ
     state["answers"].append(value)
     state["current_question"] += 1
 
+    # Следующий вопрос или результат
     if state["current_question"] < len(questions):
         next_question = questions[state["current_question"]][0]
         await update.message.reply_text(next_question)
@@ -62,7 +65,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         prediction = model.predict(X)[0]
         result = "🟢 Низкий риск" if prediction == 0 else "🔴 Высокий риск"
         await update.message.reply_text(f"Результат: {result}")
-        del user_states[chat_id]
+        user_states[chat_id]["in_progress"] = False
 
 def main():
     app = ApplicationBuilder().token("7473045709:AAF8lTAD9t-xsEPlRAtgSwddB9TIZj1oJY0").build()
