@@ -42,7 +42,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Запуск бота
 def main():
-    app = ApplicationBuilder().token("7617617902:AAEh6k05vDbgnLA2VESLCHIfZ0AqiPl1jDI").build()
+    app = ApplicationBuilder().token("YOUR_BOT_TOKEN").build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
