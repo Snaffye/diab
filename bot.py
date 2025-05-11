@@ -24,7 +24,7 @@ user_data = {}
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data[update.effective_chat.id] = []
     await update.message.reply_text("Привет! Я помогу оценить риск диабета. Введите значения по очереди:\n\n"
-                                    "1️⃣ Сколько раз вы были беременны?")
+                                    "Сколько раз вы были беременны?")
 
 # Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
