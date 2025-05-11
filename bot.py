@@ -6,15 +6,25 @@ import numpy as np
 # Загрузка модели
 model = joblib.load("model.pkl")
 
-# Список признаков
-features = ["Pregnancies", "Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"]
+# Список признаков с более простыми вопросами
+features = [
+    "Сколько раз вы были беременны?",  # Простой вопрос про количество беременностей
+    "Какой ваш уровень сахара в крови (если знаете)?",  # Упрощенный вопрос о глюкозе
+    "Какое ваше кровяное давление? (вверх/вниз)",  # Простой вопрос о давлении
+    "Есть ли у вас лишний вес или проблемы с питанием?",  # Упрощение вопроса о массе тела
+    "Как часто вы испытываете жажду?",  # Вопрос о жажде как один из признаков диабета
+    "Были ли у вас частые мочеиспускания?",  # Признак диабета
+    "Какое ваше обычное самочувствие? Бывает ли усталость?",  # Вопрос об общей усталости
+    "Сколько вам лет?"  # Простой вопрос о возрасте
+]
+
 user_data = {}
 
 # Стартовая команда
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data[update.effective_chat.id] = []
     await update.message.reply_text("Привет! Я помогу оценить риск диабета. Введите значения по очереди:\n\n"
-                                    "1️⃣ Сколько беременностей было?")
+                                    "1️⃣ Сколько раз вы были беременны?")
 
 # Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -42,7 +52,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Запуск бота
 def main():
-    app = ApplicationBuilder().token("7473045709:AAF8lTAD9t-xsEPlRAtgSwddB9TIZj1oJY0").build()
+    app = ApplicationBuilder().token("YOUR_BOT_TOKEN").build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
